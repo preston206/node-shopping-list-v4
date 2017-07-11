@@ -4,7 +4,7 @@ const router = express.Router();
 const morgan = require('morgan');
 const bodyParser = require('body-parser');
 
-const {ShoppingList, Recipes} = require('./models');
+const { ShoppingList, Recipes } = require('./models');
 
 const jsonParser = bodyParser.json();
 const app = express();
@@ -34,7 +34,7 @@ app.get('/shopping-list', (req, res) => {
 app.post('/shopping-list', jsonParser, (req, res) => {
   // ensure `name` and `budget` are in request body
   const requiredFields = ['name', 'budget'];
-  for (let i=0; i<requiredFields.length; i++) {
+  for (let i = 0; i < requiredFields.length; i++) {
     const field = requiredFields[i];
     if (!(field in req.body)) {
       const message = `Missing \`${field}\` in request body`
@@ -53,8 +53,12 @@ app.post('/shopping-list', jsonParser, (req, res) => {
 // of that, log error and send back status code 400. otherwise
 // call `ShoppingList.update` with updated item.
 app.put('/shopping-list/:id', jsonParser, (req, res) => {
+
+  // console.log("req", req);
+  // console.log("res", res);
+
   const requiredFields = ['name', 'budget', 'id'];
-  for (let i=0; i<requiredFields.length; i++) {
+  for (let i = 0; i < requiredFields.length; i++) {
     const field = requiredFields[i];
     if (!(field in req.body)) {
       const message = `Missing \`${field}\` in request body`
@@ -71,11 +75,37 @@ app.put('/shopping-list/:id', jsonParser, (req, res) => {
   }
   console.log(`Updating shopping list item \`${req.params.id}\``);
   ShoppingList.update({
-    id: req.params.id,
     name: req.body.name,
+    id: req.params.id,
     budget: req.body.budget
   });
   res.status(204).end();
+});
+
+app.put('/recipes/:id', jsonParser, (request, response) => {
+  const recipeRequiredFields = ['name', 'id', 'ingredients'];
+  for (let i = 0; i < recipeRequiredFields.length; i++) {
+    const recipeField = recipeRequiredFields[i];
+    if (!(recipeField in request.body)) {
+      const recipeMessage = `missing ${recipeField} from request body`;
+      console.log(recipeMessage);
+      response.status(400).send(recipeMessage);
+    }
+  };
+
+  if (request.params.id !== request.body.id) {
+    const idMatchMessage = `URL param ID: ${request.params.id} and body ID: ${request.body.id} must match`;
+    console.log(idMatchMessage);
+    response.status(400).send(idMatchMessage);
+  };
+
+  console.log(`updated recipe item ${request.params.id}`);
+  Recipes.update({
+    name: request.body.name,
+    id: request.params.id,
+    ingredients: request.body.ingredients
+  });
+  response.status(204).end();
 });
 
 // when DELETE request comes in with an id in path,
@@ -86,7 +116,6 @@ app.delete('/shopping-list/:id', (req, res) => {
   res.status(204).end();
 });
 
-
 app.get('/recipes', (req, res) => {
   res.json(Recipes.get());
 });
@@ -94,7 +123,7 @@ app.get('/recipes', (req, res) => {
 app.post('/recipes', jsonParser, (req, res) => {
   // ensure `name` and `budget` are in request body
   const requiredFields = ['name', 'ingredients'];
-  for (let i=0; i<requiredFields.length; i++) {
+  for (let i = 0; i < requiredFields.length; i++) {
     const field = requiredFields[i];
     if (!(field in req.body)) {
       const message = `Missing \`${field}\` in request body`
